@@ -2,16 +2,16 @@
 
 ## Project overview
 
-Python script that polls the El Al seat availability API every 5 minutes and emails avivoron@gmail.com when a TLV-departing flight has 4+ available seats.
+Python script that polls the El Al seat availability API every 5 minutes and sends an email + iPhone push notification (via ntfy.sh) when a TLV-departing flight has 4+ available seats.
 
 ## Commands
 
 ```bash
-# Run
-python3 flight_monitor.py
+# Run (caffeinate prevents Mac from sleeping)
+caffeinate -i python3 flight_monitor.py
 
 # Run in background
-nohup python3 flight_monitor.py > flight_monitor.log 2>&1 &
+nohup caffeinate -i python3 flight_monitor.py > flight_monitor.log 2>&1 &
 
 # Tests
 python3 -m pytest test_flight_monitor.py -v
@@ -32,6 +32,7 @@ pip3 install -r requirements.txt
 |---|---|
 | `SENDER_EMAIL` | Gmail address used to send alerts |
 | `APP_PASSWORD` | Gmail app password (not the account password) |
+| `NTFY_TOPIC` | ntfy.sh topic name for iPhone push notifications (optional) |
 
 ## API
 
@@ -46,5 +47,6 @@ A date entry only has `seatCount` when there is some seat data; missing `seatCou
 ## Behaviour notes
 
 - Polls every 300 seconds (`POLL_INTERVAL_SECONDS`)
-- Deduplicates by `(flightNumber, date)` — each combo is emailed at most once per process run
-- SMTP errors are caught and logged; the polling loop continues
+- Deduplicates by `(flightNumber, date)` — each combo is notified at most once per process run
+- SMTP and ntfy errors are caught and logged; the polling loop continues
+- Push notifications sent via `POST https://ntfy.sh/{NTFY_TOPIC}` — skipped silently if `NTFY_TOPIC` is unset

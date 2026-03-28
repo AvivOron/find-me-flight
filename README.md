@@ -13,9 +13,12 @@ pip3 install -r requirements.txt
 ```
 SENDER_EMAIL=your@gmail.com
 APP_PASSWORD=xxxx xxxx xxxx xxxx
+NTFY_TOPIC=your-topic-here
 ```
 
 To generate a Gmail app password: Google Account → Security → 2-Step Verification → App passwords.
+
+`NTFY_TOPIC` is optional — enables iPhone push notifications via [ntfy.sh](https://ntfy.sh). Install the free **ntfy** app (App Store), then subscribe to your chosen topic name.
 
 **3. Run**
 ```bash
@@ -34,8 +37,8 @@ tail -f flight_monitor.log   # follow logs
 
 - Polls the El Al seat availability API every 5 minutes
 - Scans `flightsFromIsrael` for any date with `seatCount >= 4`
-- Sends an email to the configured recipient listing all matching flights
-- Tracks already-notified flight+date pairs to avoid duplicate emails
+- Sends an email + iPhone push notification (ntfy.sh) listing all matching flights
+- Tracks already-notified flight+date pairs to avoid duplicate alerts
 
 ## Running tests
 
