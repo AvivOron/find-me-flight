@@ -14,6 +14,7 @@ SMTP_PORT = 587
 SENDER_EMAIL = os.getenv('SENDER_EMAIL')
 SENDER_PASSWORD = os.getenv('APP_PASSWORD')
 RECEIVER_EMAIL = 'avivoron@gmail.com'
+NTFY_TOPIC = os.getenv('NTFY_TOPIC')  # e.g. "aviv-flights-x7k2"
 
 URL = 'https://www.elal.com/api/SeatAvailability/lang/heb/flights'
 HEADERS = {
@@ -60,6 +61,19 @@ def find_available_flights(data):
                     })
     return found_flights
 
+def send_push(flights):
+    if not flights or not NTFY_TOPIC:
+        return
+    lines = [f"{f['flight']} → {f['city']} on {f['date']}: {f['seats']} seats" for f in flights]
+    try:
+        requests.post(
+            f"https://ntfy.sh/{NTFY_TOPIC}",
+            data="\n".join(lines),
+            headers={"Title": "✈️ El Al seats available!", "Priority": "high", "Tags": "airplane"},
+        )
+    except Exception as e:
+        print(f"Error sending push: {e}")
+
 def send_email(flights):
     if not flights:
         return
@@ -100,6 +114,7 @@ def main():
             if new_flights:
                 print(f"Found {len(new_flights)} new flights with >=4 seats — sending email")
                 send_email(new_flights)
+                send_push(new_flights)
                 for f in new_flights:
                     notified_keys.add((f['flight'], f['date']))
             else:
