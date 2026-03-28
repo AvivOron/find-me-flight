@@ -2,7 +2,7 @@
 
 ## Project overview
 
-Python script that polls the El Al seat availability API every 5 minutes and sends an email + iPhone push notification (via ntfy.sh) when a TLV-departing flight has 4+ available seats.
+Python script that polls the El Al seat availability API every ~2 minutes and sends an email + iPhone push notification (via ntfy.sh) when a TLV-departing flight has 4+ available seats.
 
 ## Commands
 
@@ -46,7 +46,8 @@ A date entry only has `seatCount` when there is some seat data; missing `seatCou
 
 ## Behaviour notes
 
-- Polls every 300 seconds (`POLL_INTERVAL_SECONDS`)
+- Polls every 120 seconds base (`POLL_INTERVAL_SECONDS`) with ±30s random jitter to avoid bot detection
+- Uses a persistent `requests.Session()` so cookies are reused across requests (reduces challenge-page responses)
 - Deduplicates by `(flightNumber, date)` — each combo is notified at most once per process run
 - SMTP and ntfy errors are caught and logged; the polling loop continues
 - Push notifications sent via `POST https://ntfy.sh/{NTFY_TOPIC}` — skipped silently if `NTFY_TOPIC` is unset

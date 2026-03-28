@@ -35,7 +35,7 @@ tail -f flight_monitor.log   # follow logs
 
 ## How it works
 
-- Polls the El Al seat availability API every 5 minutes
+- Polls the El Al seat availability API every ~2 minutes (with random jitter to avoid bot detection)
 - Scans `flightsFromIsrael` for any date with `seatCount >= 4`
 - Sends an email + iPhone push notification (ntfy.sh) listing all matching flights
 - Tracks already-notified flight+date pairs to avoid duplicate alerts
