@@ -19,12 +19,14 @@ To generate a Gmail app password: Google Account → Security → 2-Step Verific
 
 **3. Run**
 ```bash
-python3 flight_monitor.py
+caffeinate -i python3 flight_monitor.py
 ```
+
+`caffeinate -i` prevents the Mac from sleeping for as long as the script runs.
 
 To run in the background and persist after closing the terminal:
 ```bash
-nohup python3 flight_monitor.py > flight_monitor.log 2>&1 &
+nohup caffeinate -i python3 flight_monitor.py > flight_monitor.log 2>&1 &
 tail -f flight_monitor.log   # follow logs
 ```
 
