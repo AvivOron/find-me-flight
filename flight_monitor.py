@@ -1,6 +1,6 @@
 import requests
-import json
 import smtplib
+import random
 from email.mime.text import MIMEText
 import time
 from dotenv import load_dotenv
@@ -22,17 +22,25 @@ HEADERS = {
     'Referer': 'https://www.elal.com/heb/seat-availability?d=0',
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36',
     'Accept': 'application/json, text/plain, */*',
+    'Accept-Language': 'en-US,en;q=0.9',
     'sec-ch-ua': '"Not:A-Brand";v="99", "Google Chrome";v="145", "Chromium";v="145"',
-    'sec-ch-ua-mobile': '?0'
+    'sec-ch-ua-mobile': '?0',
 }
+
+session = requests.Session()
+session.headers.update(HEADERS)
 
 def fetch_flight_data():
     try:
-        response = requests.get(URL, headers=HEADERS)
+        response = session.get(URL)
+        print(f"  HTTP {response.status_code}")
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        return data
     except Exception as e:
-        print(f"Error fetching data: {e}")
+        print(f"  Error fetching data: {e}")
+        if 'response' in locals():
+            print(f"  Response body: {response.text[:200]}")
         return None
 
 def find_available_flights(data):
@@ -98,7 +106,7 @@ def send_email(flights):
     except Exception as e:
         print(f"Error sending email: {e}")
 
-POLL_INTERVAL_SECONDS = 60  # check every 5 minutes
+POLL_INTERVAL_SECONDS = 300  # base interval (~5 minutes), jitter added per cycle
 
 def main():
     print(f"Starting flight monitor (polling every {POLL_INTERVAL_SECONDS}s)...")
@@ -121,7 +129,8 @@ def main():
                 print(f"No qualifying flights yet ({len(available_flights)} total found)")
         else:
             print("Failed to fetch data")
-        time.sleep(POLL_INTERVAL_SECONDS)
+        jitter = random.randint(-30, 30)
+        time.sleep(POLL_INTERVAL_SECONDS + jitter)
 
 if __name__ == "__main__":
     main()
