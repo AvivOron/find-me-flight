@@ -106,7 +106,7 @@ def send_email(flights):
     except Exception as e:
         print(f"Error sending email: {e}")
 
-POLL_INTERVAL_SECONDS = 300  # base interval (~5 minutes), jitter added per cycle
+POLL_INTERVAL_SECONDS = 120  # base interval (~2 minutes), jitter added per cycle
 
 def main():
     print(f"Starting flight monitor (polling every {POLL_INTERVAL_SECONDS}s)...")
