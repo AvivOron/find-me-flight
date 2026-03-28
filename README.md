@@ -34,7 +34,7 @@ python3 flight_monitor.py
 
 **To keep running after closing the terminal** (both platforms):
 ```bash
-nohup python3 -u flight_monitor.py &
+nohup python3 -u flight_monitor.py > /dev/null 2>&1 &
 tail -f flight_monitor.log   # follow logs
 kill $(pgrep -f flight_monitor.py)  # stop it
 ```

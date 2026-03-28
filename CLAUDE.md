@@ -11,10 +11,10 @@ Python script that polls the El Al seat availability API every ~2 minutes and se
 caffeinate -i python3 flight_monitor.py
 
 # Run in background (macOS)
-nohup caffeinate -i python3 -u flight_monitor.py &
+nohup caffeinate -i python3 -u flight_monitor.py > /dev/null 2>&1 &
 
 # Run in background (Linux/Pi)
-nohup python3 -u flight_monitor.py &
+nohup python3 -u flight_monitor.py > /dev/null 2>&1 &
 
 # Tests
 python3 -m pytest test_flight_monitor.py -v
