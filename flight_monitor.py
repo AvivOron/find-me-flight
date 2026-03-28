@@ -76,7 +76,7 @@ def send_push(flights):
     try:
         requests.post(
             f"https://ntfy.sh/{NTFY_TOPIC}",
-            data="\n".join(lines),
+            data="\n".join(lines).encode("utf-8"),
             headers={"Title": "El Al seats available!", "Priority": "high", "Tags": "airplane"},
         )
     except Exception as e:
