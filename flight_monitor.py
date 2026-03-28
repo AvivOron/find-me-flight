@@ -84,7 +84,7 @@ def send_email(flights):
     except Exception as e:
         print(f"Error sending email: {e}")
 
-POLL_INTERVAL_SECONDS = 300  # check every 5 minutes
+POLL_INTERVAL_SECONDS = 60  # check every 5 minutes
 
 def main():
     print(f"Starting flight monitor (polling every {POLL_INTERVAL_SECONDS}s)...")

@@ -1,35 +1,51 @@
-# Flight Monitor
+# find-me-flight
 
-This script monitors El Al's seat availability API for flights from Tel Aviv (TLV) to various destinations. When it finds flights with 4 or more seats available, it sends an email notification.
+Monitors El Al's seat availability API for flights departing from Tel Aviv (TLV). Sends an email alert as soon as a flight with 4 or more available seats is found.
 
 ## Setup
 
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+**1. Install dependencies**
+```bash
+pip3 install -r requirements.txt
+```
 
-2. Configure email settings in `flight_monitor.py`:
-   - Replace `SENDER_EMAIL` with your Gmail address
-   - Replace `SENDER_PASSWORD` with your Gmail app password (not your regular password)
-     - To get an app password: Go to Google Account settings > Security > 2-Step Verification > App passwords
-   - The receiver email is already set to `avivoron@gmail.com`
+**2. Create a `.env` file** in the project root:
+```
+SENDER_EMAIL=your@gmail.com
+APP_PASSWORD=xxxx xxxx xxxx xxxx
+```
 
-3. Run the script:
-   ```bash
-   python flight_monitor.py
-   ```
+To generate a Gmail app password: Google Account → Security → 2-Step Verification → App passwords.
 
-The script will check for available flights every 5 minutes and send email notifications when flights with >=4 seats are found.
+**3. Run**
+```bash
+python3 flight_monitor.py
+```
+
+To run in the background and persist after closing the terminal:
+```bash
+nohup python3 flight_monitor.py > flight_monitor.log 2>&1 &
+tail -f flight_monitor.log   # follow logs
+```
 
 ## How it works
 
-- Fetches data from El Al's seat availability API
-- Parses flights from Israel (TLV) to other destinations
-- Checks for dates with seatCount >= 4
-- Sends email with flight details when found
-- Avoids duplicate notifications for the same flight/date combination
+- Polls the El Al seat availability API every 5 minutes
+- Scans `flightsFromIsrael` for any date with `seatCount >= 4`
+- Sends an email to the configured recipient listing all matching flights
+- Tracks already-notified flight+date pairs to avoid duplicate emails
 
-## Note
+## Running tests
 
-Make sure to enable 2-factor authentication on your Gmail account and generate an app password for this script to work.
+```bash
+python3 -m pytest test_flight_monitor.py -v
+```
+
+## Project structure
+
+```
+flight_monitor.py        # main script
+test_flight_monitor.py   # unit tests
+requirements.txt
+.env                     # credentials — never committed
+```
