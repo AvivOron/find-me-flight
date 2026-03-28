@@ -1,12 +1,24 @@
 import requests
 import smtplib
 import random
+import logging
+from logging.handlers import RotatingFileHandler
 from email.mime.text import MIMEText
 import time
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
+
+# Logging — 1MB max, keep 2 backups (so at most ~3MB total)
+handler = RotatingFileHandler("flight_monitor.log", maxBytes=1_000_000, backupCount=2)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[handler, logging.StreamHandler()],
+)
+log = logging.getLogger()
 
 # Configuration
 SMTP_SERVER = 'smtp.gmail.com'
@@ -33,14 +45,14 @@ session.headers.update(HEADERS)
 def fetch_flight_data():
     try:
         response = session.get(URL)
-        print(f"  HTTP {response.status_code}")
+        log.info(f"  HTTP {response.status_code}")
         response.raise_for_status()
         data = response.json()
         return data
     except Exception as e:
-        print(f"  Error fetching data: {e}")
+        log.error(f"  Error fetching data: {e}")
         if 'response' in locals():
-            print(f"  Response body: {response.text[:200]}")
+            log.error(f"  Response body: {response.text[:200]}")
         return None
 
 def find_available_flights(data):
@@ -80,7 +92,7 @@ def send_push(flights):
             headers={"Title": "El Al seats available!", "Priority": "high", "Tags": "airplane"},
         )
     except Exception as e:
-        print(f"Error sending push: {e}")
+        log.error(f"Error sending push: {e}")
 
 def send_email(flights):
     if not flights:
@@ -102,33 +114,33 @@ def send_email(flights):
         server.login(SENDER_EMAIL, SENDER_PASSWORD)
         server.sendmail(SENDER_EMAIL, RECEIVER_EMAIL, msg.as_string())
         server.quit()
-        print("Email sent successfully!")
+        log.info("Email sent successfully!")
     except Exception as e:
-        print(f"Error sending email: {e}")
+        log.error(f"Error sending email: {e}")
 
 POLL_INTERVAL_SECONDS = 120  # base interval (~2 minutes), jitter added per cycle
 
 def main():
-    print(f"Starting flight monitor (polling every {POLL_INTERVAL_SECONDS}s)...")
+    log.info(f"Starting flight monitor (polling every {POLL_INTERVAL_SECONDS}s)...")
     notified_keys = set()  # avoid duplicate emails for same flight+date
 
     while True:
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Checking flights...")
+        log.info("Checking flights...")
         data = fetch_flight_data()
         if data:
             available_flights = find_available_flights(data)
             new_flights = [f for f in available_flights
                            if (f['flight'], f['date']) not in notified_keys]
             if new_flights:
-                print(f"Found {len(new_flights)} new flights with >=4 seats — sending email")
+                log.info(f"Found {len(new_flights)} new flights with >=4 seats — sending alerts")
                 send_email(new_flights)
                 send_push(new_flights)
                 for f in new_flights:
                     notified_keys.add((f['flight'], f['date']))
             else:
-                print(f"No qualifying flights yet ({len(available_flights)} total found)")
+                log.info(f"No qualifying flights yet ({len(available_flights)} total found)")
         else:
-            print("Failed to fetch data")
+            log.error("Failed to fetch data")
         jitter = random.randint(-30, 30)
         time.sleep(POLL_INTERVAL_SECONDS + jitter)
 
